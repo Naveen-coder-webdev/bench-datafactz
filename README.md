@@ -1,4 +1,3 @@
-# Breach Analytics at Scale — DataFactZ Capstone (Use Case 3)
 
 Agentic document intelligence & entity resolution for breach-notification
 analysis. Ingests a heterogeneous, messy document corpus and produces a
