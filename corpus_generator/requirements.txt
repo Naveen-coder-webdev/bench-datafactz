@@ -1,0 +1,6 @@
+faker
+python-docx
+reportlab
+openpyxl
+Pillow
+pypdf

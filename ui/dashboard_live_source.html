@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DataFactZ — Breach Exposure Ledger</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg:#12161B;
+    --panel:#181D24;
+    --panel-2:#1E2530;
+    --line:#2A323D;
+    --text:#E7EBEF;
+    --muted:#8B96A5;
+    --muted-2:#5C6675;
+    --teal:#4FD1C5;
+    --amber:#E8A33D;
+    --red:#E5484D;
+    --green:#5FBF77;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Inter',system-ui,sans-serif; font-size:14px;
+    -webkit-font-smoothing:antialiased;
+  }
+  mono, .mono{font-family:'JetBrains Mono',ui-monospace,monospace;}
+  h1,h2,h3{font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:.01em; margin:0;}
+
+  /* ---- shell ---- */
+  #shell{display:grid; grid-template-columns:220px 1fr; min-height:100vh;}
+  #sidebar{
+    background:var(--panel); border-right:1px solid var(--line);
+    padding:20px 14px; position:sticky; top:0; height:100vh;
+  }
+  .brand{display:flex; align-items:baseline; gap:6px; margin-bottom:2px;}
+  .brand-mark{width:9px; height:9px; background:var(--teal); border-radius:1px; margin-right:6px; box-shadow:0 0 8px var(--teal);}
+  .brand h1{font-size:20px; color:var(--text);}
+  .brand-sub{font-size:10px; color:var(--muted-2); text-transform:uppercase; letter-spacing:.12em; margin:2px 0 22px 15px;}
+  .case-tag{
+    font-family:'JetBrains Mono'; font-size:10.5px; color:var(--muted);
+    background:var(--panel-2); border:1px solid var(--line); border-radius:3px;
+    padding:6px 8px; margin-bottom:20px; line-height:1.5;
+  }
+  .case-tag b{color:var(--amber); font-weight:500;}
+  nav button{
+    display:flex; align-items:center; gap:9px; width:100%; text-align:left;
+    background:none; border:none; color:var(--muted); font-family:'Inter';
+    font-size:13px; padding:9px 10px; border-radius:5px; cursor:pointer; margin-bottom:2px;
+    transition:background .12s, color .12s;
+  }
+  nav button:hover{background:var(--panel-2); color:var(--text);}
+  nav button.active{background:var(--panel-2); color:var(--teal);}
+  nav button .n{
+    margin-left:auto; font-family:'JetBrains Mono'; font-size:10.5px; color:var(--muted-2);
+    background:var(--bg); padding:1px 6px; border-radius:8px; border:1px solid var(--line);
+  }
+  nav button.active .n{color:var(--teal); border-color:#2c4643;}
+  .dot{width:6px; height:6px; border-radius:50%; flex-shrink:0;}
+
+  #main{padding:26px 34px 60px; max-width:1320px;}
+  .page-head{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:22px;}
+  .page-head h2{font-size:26px;}
+  .page-head p{color:var(--muted); font-size:12.5px; margin-top:3px;}
+
+  /* ---- stat cards ---- */
+  .stats-row{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:26px;}
+  .stat-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:7px; padding:14px 16px;
+  }
+  .stat-card .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted-2);}
+  .stat-card .val{font-family:'Barlow Condensed'; font-size:30px; font-weight:600; margin-top:4px; color:var(--text);}
+  .stat-card .sub{font-size:11px; color:var(--muted); margin-top:2px;}
+  .stat-card.warn .val{color:var(--amber);}
+  .stat-card.bad .val{color:var(--red);}
+  .stat-card.good .val{color:var(--green);}
+
+  /* ---- table ---- */
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; margin-bottom:20px;}
+  .panel-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:13px 16px; border-bottom:1px solid var(--line); background:var(--panel-2);
+  }
+  .panel-head h3{font-size:15px; color:var(--text); font-weight:600; font-family:'Inter';}
+  .filters{display:flex; gap:8px;}
+  .filters input, .filters select{
+    background:var(--bg); border:1px solid var(--line); color:var(--text);
+    border-radius:5px; padding:6px 9px; font-size:12px; font-family:'Inter';
+  }
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  thead th{
+    text-align:left; padding:9px 14px; color:var(--muted-2); font-weight:500;
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.06em;
+    border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--panel);
+  }
+  tbody tr{border-bottom:1px solid var(--line); cursor:pointer; transition:background .1s;}
+  tbody tr:hover{background:var(--panel-2);}
+  tbody td{padding:9px 14px; vertical-align:middle;}
+  .name-cell{font-weight:500;}
+  .id-cell{color:var(--muted-2); font-family:'JetBrains Mono'; font-size:11px;}
+  .badge{
+    display:inline-block; padding:2px 8px; border-radius:10px; font-size:10.5px;
+    font-family:'JetBrains Mono'; border:1px solid;
+  }
+  .badge.auto{color:var(--green); border-color:#2b4a34; background:#182620;}
+  .badge.review{color:var(--amber); border-color:#4a3a1e; background:#26200f;}
+  .flag-dots{display:flex; gap:3px; flex-wrap:wrap; max-width:190px;}
+  .flag-dot{
+    width:7px; height:7px; border-radius:2px; background:var(--line);
+  }
+  .flag-dot.on{background:var(--teal);}
+  .flag-dot.on.low{background:var(--amber);}
+  .scroll-body{max-height:560px; overflow:auto;}
+
+  /* ---- drawer ---- */
+  #overlay{position:fixed; inset:0; background:rgba(8,10,13,.6); display:none; z-index:10;}
+  #overlay.show{display:block;}
+  #drawer{
+    position:fixed; top:0; right:0; width:480px; height:100vh; background:var(--panel);
+    border-left:1px solid var(--line); transform:translateX(100%); transition:transform .22s ease;
+    z-index:11; overflow-y:auto; padding:24px;
+  }
+  #drawer.show{transform:translateX(0);}
+  #drawer .close{
+    background:none; border:1px solid var(--line); color:var(--muted); border-radius:5px;
+    padding:4px 9px; cursor:pointer; float:right; font-size:12px;
+  }
+  #drawer h2{font-size:24px; margin-top:4px;}
+  #drawer .pid{color:var(--muted-2); font-family:'JetBrains Mono'; font-size:11.5px; margin-bottom:18px;}
+  .evidence-item{
+    border-left:2px solid var(--line); padding:8px 0 8px 12px; margin-bottom:2px; position:relative;
+  }
+  .evidence-item::before{
+    content:''; position:absolute; left:-4px; top:14px; width:6px; height:6px;
+    border-radius:50%; background:var(--teal);
+  }
+  .evidence-item .cat{
+    font-family:'JetBrains Mono'; font-size:10.5px; color:var(--teal); text-transform:uppercase;
+  }
+  .evidence-item .doc{color:var(--muted-2); font-size:10.5px; margin-left:6px;}
+  .evidence-item .snippet{color:var(--muted); font-size:12px; margin-top:3px; line-height:1.5;}
+  .section-lbl{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted-2);
+    margin:20px 0 8px; border-top:1px solid var(--line); padding-top:16px;
+  }
+  .flag-row{display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:12.5px;}
+  .conf-bar{width:70px; height:4px; background:var(--line); border-radius:2px; overflow:hidden;}
+  .conf-bar div{height:100%; background:var(--teal);}
+
+  /* ---- agent runs ---- */
+  .run-card{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:12px 14px; margin-bottom:8px;
+  }
+  .run-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .run-head .subj{font-family:'JetBrains Mono'; font-size:12px; color:var(--text);}
+  .decision-badge{
+    font-family:'JetBrains Mono'; font-size:10.5px; padding:2px 8px; border-radius:3px; border:1px solid;
+  }
+  .decision-badge.MERGE{color:var(--green); border-color:#2b4a34;}
+  .decision-badge.SPLIT{color:var(--red); border-color:#4a2b2e;}
+  .decision-badge.ESCALATE{color:var(--amber); border-color:#4a3a1e;}
+  .run-reason{color:var(--muted); font-size:12.5px; line-height:1.5;}
+
+  .empty{padding:40px; text-align:center; color:var(--muted-2); font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<div id="shell">
+  <aside id="sidebar">
+    <div class="brand"><span class="brand-mark"></span><h1>DataFactZ</h1></div>
+    <div class="brand-sub" style="margin-left:15px">Breach Exposure Ledger</div>
+    <div class="case-tag">CASE <b>UC3-2026-0819</b><br>Synthetic corpus · 520 docs</div>
+    <nav id="nav"></nav>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<div id="overlay" onclick="closeDrawer()"></div>
+<div id="drawer"></div>
+
+<script>
+const DATA = __DATA_JSON__;
+const CATS = ["ssn","dob","dl_number","passport_number","financial_account","card_number","medical","login_credentials","home_address","phone","email"];
+const CAT_LABEL = {ssn:"SSN", dob:"DOB", dl_number:"Driver's Lic.", passport_number:"Passport", financial_account:"Fin. Account", card_number:"Card #", medical:"Medical", login_credentials:"Login Creds", home_address:"Address", phone:"Phone", email:"Email"};
+
+let page = "overview";
+let personFilter = {q:"", review:"", cat:""};
+
+function nav(){
+  const items = [
+    ["overview","Overview","●",()=>true],
+    ["exposure","Exposure Table","●",()=>true],
+    ["review","Review Queue","●",()=>true],
+    ["documents","Documents","●",()=>true],
+    ["agents","Agent Runs","●",()=>true],
+  ];
+  const counts = {
+    overview:"", exposure:DATA.persons.length, review:DATA.review_queue.length,
+    documents:DATA.documents.length, agents:DATA.agent_runs.length
+  };
+  document.getElementById('nav').innerHTML = items.map(([id,label])=>`
+    <button class="${page===id?'active':''}" onclick="goTo('${id}')">
+      ${label}<span class="n">${counts[id]}</span>
+    </button>`).join('');
+}
+
+function goTo(p){ page=p; render(); }
+
+function statCards(){
+  const total = DATA.persons.length;
+  const review = DATA.review_queue.length;
+  const quarantined = DATA.documents_by_status.quarantined || 0;
+  const parsed = DATA.documents_by_status.parsed || 0;
+  const merges = DATA.agent_runs.filter(r=>r.decision==='MERGE').length;
+  const splits = DATA.agent_runs.filter(r=>r.decision==='SPLIT').length;
+  return `
+  <div class="stats-row">
+    <div class="stat-card"><div class="lbl">Individuals Identified</div><div class="val">${total}</div><div class="sub">resolved from corpus</div></div>
+    <div class="stat-card warn"><div class="lbl">Needs Review</div><div class="val">${review}</div><div class="sub">${((review/total)*100).toFixed(0)}% of population</div></div>
+    <div class="stat-card"><div class="lbl">Documents Parsed</div><div class="val">${parsed}</div><div class="sub">of ${parsed+quarantined} ingested</div></div>
+    <div class="stat-card bad"><div class="lbl">Quarantined</div><div class="val">${quarantined}</div><div class="sub">corrupt / locked / malformed</div></div>
+    <div class="stat-card good"><div class="lbl">Adjudicator Actions</div><div class="val">${merges+splits}</div><div class="sub">${merges} merge · ${splits} split</div></div>
+  </div>`;
+}
+
+function docTypeBar(){
+  const types = DATA.documents_by_type;
+  const max = Math.max(...Object.values(types));
+  return `<div class="panel"><div class="panel-head"><h3>Corpus composition</h3></div>
+    <div style="padding:16px;">
+    ${Object.entries(types).sort((a,b)=>b[1]-a[1]).map(([t,c])=>`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">
+        <div class="mono" style="width:70px;color:var(--muted);font-size:11px;">${t}</div>
+        <div style="flex:1;background:var(--panel-2);border-radius:3px;height:14px;overflow:hidden;">
+          <div style="width:${(c/max*100)}%;height:100%;background:var(--teal);opacity:.75;"></div>
+        </div>
+        <div class="mono" style="width:30px;text-align:right;color:var(--muted);font-size:11px;">${c}</div>
+      </div>`).join('')}
+    </div></div>`;
+}
+
+function flagDots(flags){
+  const on = new Set(flags.filter(f=>f.is_exposed).map(f=>f.category));
+  const confOf = {}; flags.forEach(f=>confOf[f.category]=f.confidence);
+  return `<div class="flag-dots">${CATS.map(c=>{
+    if(!on.has(c)) return `<div class="flag-dot" title="${CAT_LABEL[c]}: not exposed"></div>`;
+    const low = confOf[c] < 0.75;
+    return `<div class="flag-dot on ${low?'low':''}" title="${CAT_LABEL[c]}: exposed (${(confOf[c]*100).toFixed(0)}% conf)"></div>`;
+  }).join('')}</div>`;
+}
+
+function personRow(p){
+  const rs = p.review_status;
+  return `<tr onclick="openPerson('${p.person_id}')">
+    <td class="id-cell">${p.person_id}</td>
+    <td class="name-cell">${p.best_name.split('\\n')[0]}</td>
+    <td class="mono" style="color:var(--muted);font-size:11.5px;">${p.dob||'—'}</td>
+    <td>${flagDots(p.flags)}</td>
+    <td><span class="badge ${rs==='auto_accepted'?'auto':'review'}">${rs.replace('_',' ')}</span></td>
+  </tr>`;
+}
+
+function exposurePage(){
+  let list = DATA.persons.filter(p=>{
+    if(personFilter.q && !p.best_name.toLowerCase().includes(personFilter.q.toLowerCase()) && !p.person_id.toLowerCase().includes(personFilter.q.toLowerCase())) return false;
+    if(personFilter.review && p.review_status!==personFilter.review) return false;
+    if(personFilter.cat && !p.flags.some(f=>f.category===personFilter.cat && f.is_exposed)) return false;
+    return true;
+  });
+  return `
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Exposure table <span style="color:var(--muted-2);font-weight:400;">(${list.length} of ${DATA.persons.length})</span></h3>
+      <div class="filters">
+        <input placeholder="Search name or ID…" oninput="personFilter.q=this.value;render()" value="${personFilter.q}">
+        <select onchange="personFilter.review=this.value;render()">
+          <option value="">All review status</option>
+          <option value="auto_accepted" ${personFilter.review==='auto_accepted'?'selected':''}>Auto-accepted</option>
+          <option value="needs_review" ${personFilter.review==='needs_review'?'selected':''}>Needs review</option>
+        </select>
+        <select onchange="personFilter.cat=this.value;render()">
+          <option value="">All categories</option>
+          ${CATS.map(c=>`<option value="${c}" ${personFilter.cat===c?'selected':''}>${CAT_LABEL[c]}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="scroll-body">
+    <table>
+      <thead><tr><th>Person ID</th><th>Best-known name</th><th>DOB</th><th>Exposure flags</th><th>Status</th></tr></thead>
+      <tbody>${list.length? list.map(personRow).join('') : '<tr><td colspan="5" class="empty">No matches</td></tr>'}</tbody>
+    </table>
+    </div>
+  </div>`;
+}
+
+function reviewPage(){
+  const items = DATA.review_queue;
+  return `<div class="panel"><div class="panel-head"><h3>Human review queue <span style="color:var(--muted-2);font-weight:400;">(${items.length} pending)</span></h3></div>
+    <div class="scroll-body">
+    <table>
+      <thead><tr><th>Person ID</th><th>Name</th><th>Resolution confidence</th><th>Reason</th></tr></thead>
+      <tbody>${items.map(p=>{
+        const runs = DATA.agent_runs.filter(r=>r.subject_id===p.person_id);
+        const reason = runs.length ? runs[runs.length-1].output_summary : "Awaiting adjudicator pass";
+        return `<tr onclick="openPerson('${p.person_id}')">
+          <td class="id-cell">${p.person_id}</td>
+          <td class="name-cell">${p.best_name.split('\\n')[0]}</td>
+          <td><div class="conf-bar"><div style="width:${(p.resolution_confidence*100)}%"></div></div></td>
+          <td style="color:var(--muted);font-size:11.5px;max-width:380px;">${reason.slice(0,110)}${reason.length>110?'…':''}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div></div>`;
+}
+
+function documentsPage(){
+  const q = DATA.documents_by_status.quarantined, p = DATA.documents_by_status.parsed;
+  return `
+  ${docTypeBar()}
+  <div class="panel"><div class="panel-head"><h3>Document status</h3></div>
+  <div class="scroll-body">
+  <table>
+    <thead><tr><th>Doc ID</th><th>Filename</th><th>Type</th><th>Status</th><th>Quarantine reason</th></tr></thead>
+    <tbody>${DATA.documents.map(d=>`
+      <tr>
+        <td class="id-cell">${d.doc_id}</td>
+        <td>${d.filename}</td>
+        <td class="mono" style="color:var(--muted);font-size:11px;">${d.file_type}</td>
+        <td><span class="badge ${d.status==='parsed'?'auto':'review'}">${d.status}</span></td>
+        <td style="color:var(--muted);font-size:11.5px;">${d.quarantine_reason||'—'}</td>
+      </tr>`).join('')}</tbody>
+  </table></div></div>`;
+}
+
+function agentsPage(){
+  const runs = [...DATA.agent_runs].reverse();
+  return `<div class="panel"><div class="panel-head"><h3>Entity-resolution adjudicator — run trace</h3></div>
+    <div class="scroll-body" style="padding:14px;">
+      ${runs.map(r=>`
+        <div class="run-card">
+          <div class="run-head">
+            <span class="subj">${r.subject_id}</span>
+            <span class="decision-badge ${r.decision}">${r.decision}</span>
+          </div>
+          <div class="run-reason">${r.output_summary}</div>
+        </div>`).join('')}
+    </div></div>`;
+}
+
+function overviewPage(){
+  return `${statCards()}
+    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px;">
+      ${docTypeBar()}
+      <div class="panel"><div class="panel-head"><h3>Latest adjudicator activity</h3></div>
+        <div style="padding:14px;max-height:280px;overflow:auto;">
+        ${[...DATA.agent_runs].reverse().slice(0,6).map(r=>`
+          <div class="run-card">
+            <div class="run-head"><span class="subj">${r.subject_id}</span><span class="decision-badge ${r.decision}">${r.decision}</span></div>
+            <div class="run-reason" style="font-size:11.5px;">${r.output_summary.slice(0,120)}…</div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function openPerson(pid){
+  const p = DATA.persons.find(x=>x.person_id===pid);
+  const runs = DATA.agent_runs.filter(r=>r.subject_id===pid);
+  document.getElementById('drawer').innerHTML = `
+    <button class="close" onclick="closeDrawer()">✕ close</button>
+    <h2>${p.best_name.split('\\n')[0]}</h2>
+    <div class="pid">${p.person_id} · DOB ${p.dob||'unknown'} · <span class="badge ${p.review_status==='auto_accepted'?'auto':'review'}">${p.review_status.replace('_',' ')}</span></div>
+
+    <div class="section-lbl">Exposure flags</div>
+    ${p.flags.map(f=>`
+      <div class="flag-row">
+        <span>${CAT_LABEL[f.category]||f.category}</span>
+        <span style="display:flex;align-items:center;gap:8px;">
+          <span class="mono" style="color:var(--muted-2);font-size:10.5px;">${(f.confidence*100).toFixed(0)}%</span>
+          <div class="conf-bar"><div style="width:${(f.confidence*100)}%;background:${f.confidence<0.75?'var(--amber)':'var(--teal)'}"></div></div>
+        </span>
+      </div>`).join('') || '<div class="empty">No flags</div>'}
+
+    <div class="section-lbl">Evidence trail (${p.evidence.length} elements shown)</div>
+    ${p.evidence.map(e=>`
+      <div class="evidence-item">
+        <span class="cat">${e.category}</span><span class="doc">${e.doc_id} · ${(e.confidence*100).toFixed(0)}% conf</span>
+        <div class="snippet">"${(e.context_snippet||e.raw_value||'').replace(/</g,'&lt;')}"</div>
+      </div>`).join('') || '<div class="empty">No evidence linked</div>'}
+
+    ${runs.length ? `<div class="section-lbl">Adjudicator decisions</div>
+      ${runs.map(r=>`<div class="run-card"><div class="run-head"><span class="decision-badge ${r.decision}">${r.decision}</span></div><div class="run-reason">${r.output_summary}</div></div>`).join('')}` : ''}
+  `;
+  document.getElementById('drawer').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('show');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function render(){
+  nav();
+  const pages = {overview:overviewPage, exposure:exposurePage, review:reviewPage, documents:documentsPage, agents:agentsPage};
+  const titles = {overview:["Case overview","Live status across ingestion, resolution, and the review queue"],
+    exposure:["Exposure table","One row per resolved individual — click any row for evidence"],
+    review:["Human review queue","Persons the adjudicator could not confirm automatically"],
+    documents:["Document inventory","Every file in the corpus, its parse status, and quarantine reasons"],
+    agents:["Agent run trace","Explained merge / split / escalate decisions from the entity-resolution adjudicator"]};
+  document.getElementById('main').innerHTML = `
+    <div class="page-head"><div><h2>${titles[page][0]}</h2><p>${titles[page][1]}</p></div></div>
+    ${pages[page]()}
+  `;
+}
+
+render();
+</script>
+</body>
+</html>

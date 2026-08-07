@@ -1,0 +1,144 @@
+{
+  "person_level": {
+    "true_people": 168,
+    "resolved_clusters": 220,
+    "clusters_mapped_to_a_true_person": 73,
+    "true_people_found_recall": 0.298,
+    "cluster_mapping_precision": 0.332,
+    "oversplit_true_people_count": 17,
+    "oversplit_examples": {
+      "P0025": [
+        "RES_0021",
+        "RES_0152",
+        "RES_0193"
+      ],
+      "P0038": [
+        "RES_0031",
+        "RES_0125",
+        "RES_0215"
+      ],
+      "P0044": [
+        "RES_0035",
+        "RES_0204"
+      ],
+      "P0096": [
+        "RES_0071",
+        "RES_0139",
+        "RES_0218"
+      ],
+      "P0105": [
+        "RES_0076",
+        "RES_0196"
+      ]
+    }
+  },
+  "shared_name_trap": [
+    {
+      "pair": [
+        "P0161",
+        "P0021"
+      ],
+      "names": "Garrett Wallace",
+      "kept_split": false,
+      "resolved_clusters": [
+        null,
+        "RES_0017"
+      ]
+    },
+    {
+      "pair": [
+        "P0162",
+        "P0066"
+      ],
+      "names": "Michelle Burns",
+      "kept_split": false,
+      "resolved_clusters": [
+        null,
+        null
+      ]
+    },
+    {
+      "pair": [
+        "P0163",
+        "P0041"
+      ],
+      "names": "Kristin Le",
+      "kept_split": false,
+      "resolved_clusters": [
+        null,
+        "RES_0033"
+      ]
+    },
+    {
+      "pair": [
+        "P0164",
+        "P0117"
+      ],
+      "names": "Jamie Smith",
+      "kept_split": false,
+      "resolved_clusters": [
+        null,
+        "RES_0086"
+      ]
+    },
+    {
+      "pair": [
+        "P0165",
+        "P0148"
+      ],
+      "names": "Gail Singleton",
+      "kept_split": false,
+      "resolved_clusters": [
+        null,
+        null
+      ]
+    },
+    {
+      "pair": [
+        "P0166",
+        "P0013"
+      ],
+      "names": "Ashley Andrews",
+      "kept_split": false,
+      "resolved_clusters": [
+        "RES_0170",
+        null
+      ]
+    },
+    {
+      "pair": [
+        "P0167",
+        "P0049"
+      ],
+      "names": "Joshua Stuart",
+      "kept_split": false,
+      "resolved_clusters": [
+        "RES_0118",
+        null
+      ]
+    },
+    {
+      "pair": [
+        "P0168",
+        "P0080"
+      ],
+      "names": "Andrea Parker",
+      "kept_split": false,
+      "resolved_clusters": [
+        null,
+        null
+      ]
+    }
+  ],
+  "per_category_recall": {
+    "card_number": 0.285,
+    "dob": 0.289,
+    "email": 0.258,
+    "full_name": 0.298,
+    "home_address": 0.259,
+    "login_credentials": 0.132,
+    "medical": 0.25,
+    "phone": 0.282,
+    "ssn": 0.301
+  }
+}

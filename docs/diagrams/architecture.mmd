@@ -1,0 +1,45 @@
+flowchart TB
+    subgraph Corpus["Synthetic Breach Corpus"]
+        C1[520 documents<br/>docx/pdf/xlsx/csv/eml/txt/html/png]
+    end
+
+    subgraph Pipeline["Deterministic Pipeline (bulk path — cheap, fast, testable)"]
+        direction TB
+        P1[Ingestion & Triage<br/>classify · quarantine]
+        P2[Parsing<br/>pdftotext / tesseract OCR / native parsers]
+        P3[PII Extraction<br/>regex + checksum + structured columns]
+        P4[Entity Resolution<br/>blocking + identifier corroboration]
+        P1 --> P2 --> P3 --> P4
+    end
+
+    subgraph Agents["Agentic Layer (judgment & iteration only)"]
+        direction TB
+        A1[Orchestrator<br/>plans campaign, adapts to failure rates]
+        A2[Exception Investigator<br/>retries quarantined/ambiguous files]
+        A3[Entity-Resolution Adjudicator<br/>explained merge/split/escalate]
+        A4[QA Auditor<br/>independent re-verification]
+    end
+
+    subgraph Output["Exposure Table + Interfaces"]
+        O1[(Relational DB<br/>documents/extractions/persons/<br/>identity_links/flags/review_decisions)]
+        O2[REST API]
+        O3[Dashboard UI]
+    end
+
+    Corpus --> P1
+    P1 -. quarantined .-> A2
+    A2 -. resolved/escalated .-> P2
+    P4 -. ambiguous cases .-> A3
+    A3 -. decisions .-> O1
+    P1 & P2 & P3 & P4 --> O1
+    A1 -.plans/monitors.-> P1
+    A1 -.plans/monitors.-> P2
+    A4 -.samples & verifies.-> O1
+    O1 --> O2 --> O3
+
+    classDef pipeline fill:#1E2530,stroke:#4FD1C5,color:#E7EBEF
+    classDef agent fill:#1E2530,stroke:#E8A33D,color:#E7EBEF
+    classDef output fill:#1E2530,stroke:#5FBF77,color:#E7EBEF
+    class P1,P2,P3,P4 pipeline
+    class A1,A2,A3,A4 agent
+    class O1,O2,O3 output
